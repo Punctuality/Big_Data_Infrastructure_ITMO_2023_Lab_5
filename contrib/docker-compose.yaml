@@ -39,7 +39,3 @@ services:
       - "18081:18081"
     volumes:
       - /tmp/spark-events-local:/tmp/spark-events
-
-  spark-app:
-    image: spark-app
-    container_name: spark-app

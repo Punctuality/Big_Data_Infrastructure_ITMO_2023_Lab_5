@@ -3,6 +3,7 @@ package com.github.Punctuality
 import com.github.Punctuality.model.SugarEnergy
 import com.github.Punctuality.util.Decompressing
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.spark.SparkFiles
 import org.apache.spark.sql._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -18,7 +19,7 @@ object OpenFoodFactsClustering extends LazyLogging {
   def main(args: Array[String]): Unit = {
 
     val spark = SparkSession.builder.appName("TestSparkConnection")
-//      .master("spark://spark-master:7077")
+      .master("spark://spark-master:7077")
       .master("local[*]")
       .config("spark.sql.caseSensitive", "true")
       .getOrCreate()
@@ -27,7 +28,11 @@ object OpenFoodFactsClustering extends LazyLogging {
 
     logger.info("Decompressed file size: " + size)
 
-    val rdd = spark.sparkContext.textFile(decompressedPath.getAbsolutePath)
+    spark.sparkContext.addFile(decompressedPath.getAbsolutePath)
+
+    val sparkPath = SparkFiles.get(decompressedPath.getName)
+
+    val rdd = spark.sparkContext.textFile(sparkPath)
     val jsonRDD = rdd.flatMap(str => Try(parse(str)).toOption)
     val sugarEnergyRDD: RDD[SugarEnergy] = jsonRDD.flatMap(json => Try(json.as[SugarEnergy]).toOption).cache()
 
