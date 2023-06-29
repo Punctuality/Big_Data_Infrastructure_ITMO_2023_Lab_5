@@ -8,4 +8,4 @@ cd ../
 
 docker build --rm=true -t spark-app-lab5 ./
 
-docker run --net contrib_default --link spark-master:spark-master spark-app-lab5
+docker run -v /tmp:/tmp --net contrib_default --link spark-master:spark-master spark-app-lab5

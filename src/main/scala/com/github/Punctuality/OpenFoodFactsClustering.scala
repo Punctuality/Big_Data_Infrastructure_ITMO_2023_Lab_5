@@ -20,19 +20,15 @@ object OpenFoodFactsClustering extends LazyLogging {
 
     val spark = SparkSession.builder.appName("TestSparkConnection")
       .master("spark://spark-master:7077")
-      .master("local[*]")
       .config("spark.sql.caseSensitive", "true")
+      .config("spark.driver.maxResultSize", "2G")
       .getOrCreate()
 
     val (decompressedPath, size) = Decompressing.decompressResource("openfoodfacts.gz")
 
     logger.info("Decompressed file size: " + size)
 
-    spark.sparkContext.addFile(decompressedPath.getAbsolutePath)
-
-    val sparkPath = SparkFiles.get(decompressedPath.getName)
-
-    val rdd = spark.sparkContext.textFile(sparkPath)
+    val rdd = spark.sparkContext.textFile(s"file://" + decompressedPath.getAbsolutePath).cache()
     val jsonRDD = rdd.flatMap(str => Try(parse(str)).toOption)
     val sugarEnergyRDD: RDD[SugarEnergy] = jsonRDD.flatMap(json => Try(json.as[SugarEnergy]).toOption).cache()
 
